@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gamble or Die</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+    }
+    .button {
+      padding: 10px 20px;
+      margin: 10px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+    }
+    .triangle {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 30px solid red;
+    }
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gamble or Die</h1>
+    <button class="button" onclick="showWheel()">Play</button>
+    <button class="button" onclick="showInstructions()">How to Play</button>
+
+    <div id="instructions" style="display:none;">
+      <h2>How to Play</h2>
+      <p>Select your difficulty, roll the character wheel, and name your character. Use the wheel to advance the game. Win by escaping the matrix or defeating the final boss!</p>
+      <button class="button" onclick="hideInstructions()">Back</button>
+    </div>
+
+    <div id="wheelGame" style="display:none;">
+      <div class="wheel-container">
+        <div class="triangle"></div>
+        <canvas id="wheelCanvas" width="300" height="300"></canvas>
+      </div>
+      <button class="button" onclick="spin()">Spin</button>
+      <p id="resultText"></p>
+      <button class="button" onclick="exitWheel()">Exit</button>
+    </div>
+  </div>
+
+  <script>
+    const options = [
+      { label: "fight monster", probability: 47 },
+      { label: "escape the matrix", probability: 3 },
+      { label: "you survive another day", probability: 20 },
+      { label: "buff", probability: 20 },
+      { label: "temple", probability: 10 },
+    ];
+
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const resultText = document.getElementById("resultText");
+    let startAngle = 0;
+
+    function drawWheel() {
+      const total = options.reduce((acc, opt) => acc + opt.probability, 0);
+      const radius = canvas.width / 2;
+      let angle = 0;
+
+      for (let i = 0; i < options.length; i++) {
+        const sliceAngle = (options[i].probability / total) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, angle, angle + sliceAngle);
+        ctx.fillStyle = `hsl(${(i * 360) / options.length}, 70%, 50%)`;
+        ctx.fill();
+
+        const textAngle = angle + sliceAngle / 2;
+        const x = radius + Math.cos(textAngle) * radius * 0.6;
+        const y = radius + Math.sin(textAngle) * radius * 0.6;
+        ctx.fillStyle = "#000";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(options[i].label, x, y);
+
+        angle += sliceAngle;
+      }
+    }
+
+    function spin() {
+      const spinTime = 1000 + Math.random() * 1000;
+      const total = options.reduce((acc, opt) => acc + opt.probability, 0);
+      let angle = Math.random() * 2 * Math.PI;
+      const result = Math.random() * total;
+      let cumulative = 0;
+      let chosen;
+      for (let i = 0; i < options.length; i++) {
+        cumulative += options[i].probability;
+        if (result <= cumulative) {
+          chosen = options[i].label;
+          break;
+        }
+      }
+      startAngle += 2 * Math.PI * 5 + angle;
+      drawWheel();
+      resultText.textContent = `You landed on: ${chosen}`;
+    }
+
+    function showWheel() {
+      document.getElementById("wheelGame").style.display = "block";
+      document.getElementById("instructions").style.display = "none";
+      drawWheel();
+    }
+
+    function exitWheel() {
+      document.getElementById("wheelGame").style.display = "none";
+    }
+
+    function showInstructions() {
+      document.getElementById("instructions").style.display = "block";
+    }
+
+    function hideInstructions() {
+      document.getElementById("instructions").style.display = "none";
+    }
+  </script>
+</body>
+</html>
